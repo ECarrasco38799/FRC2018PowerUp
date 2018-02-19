@@ -79,10 +79,10 @@ public class Robot extends IterativeRobot {
 		// Auto subsystem is constructed last as it may want to reference the others
 		// (Not a best practice)
 		driveSubsystem = new DriveSubsystem();
-		intakeSubsystem = new IntakeSubsystem();
+//		intakeSubsystem = new IntakeSubsystem();
 		visionSubsystem = new VisionSubsystem();
 		//rampSubsystem = new RampSubsystem();		
-		//elevatorSubsystem = new ElevatorSubsystem();
+		elevatorSubsystem = new ElevatorSubsystem();
 				
 		imu = new NavxIMU();
 		lightingControl = new LightingControl();
@@ -104,11 +104,11 @@ public class Robot extends IterativeRobot {
 	private void setSubsystemsDebug() 
 	{
 		driveSubsystem.setDiagnosticsFlag(true);
-		intakeSubsystem.setDiagnosticsFlag(true);
+//		intakeSubsystem.setDiagnosticsFlag(true);
 		
         /// WARNING WARNING WARNING: ONLY ONE		
 		//springShooterSubsystem.setDiagnosticsFlag(true);
-		elevatorSubsystem.setDiagnosticsFlag(true);
+//		elevatorSubsystem.setDiagnosticsFlag(true);
 		
 	}
 	
