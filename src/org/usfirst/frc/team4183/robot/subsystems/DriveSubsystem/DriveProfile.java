@@ -17,25 +17,29 @@ public class DriveProfile extends Command {
 	
     public DriveProfile(RobotTrajectory aTrajectory) 
     {
-    	requires(Robot.autonomousSubsystem);
+    	requires(Robot.driveSubsystem);
     	
     	trajectory = aTrajectory;
     	
     	// Timeout is set to 2 seconds beyond the estimated trajectory length based on the 
     	// sum of all delta-t values (assumed to be monotonic)
-    	timeout_sec = 2.0 + trajectory.center.length() * trajectory.center.get(0).dt;
+    	timeout_sec = 0.5 + trajectory.center.length() * trajectory.center.get(0).dt;
     }
     
     // Called just before this Command runs the first time
     protected void initialize() 
     {
+    	System.out.println(this.getClass().getSimpleName());
     	Robot.driveSubsystem.startTrajectory(trajectory);
+    	Robot.driveSubsystem.motionProfileDriver.control();
+
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() 
     {
     	Robot.driveSubsystem.motionProfileDriver.control();
+    	Robot.driveSubsystem.profileDrive();
     }
 
     // Make this return true when this Command no longer needs to run execute()
@@ -44,19 +48,30 @@ public class DriveProfile extends Command {
     	// Send back to idle when auto ends or profile is complete
     	/// TODO: go to next auto state when doing multiple actions
     	/// as either a command group or is it better to let idle and subsystem design what is next
-    	boolean timeout = (timeSinceInitialized() > timeout_sec);
-    	if ( (Robot.runMode != Robot.RunMode.AUTO) ||
-    		 (Robot.driveSubsystem.motionProfileDriver.getSetValue() != SetValueMotionProfile.Enable) ||
-    		 timeout
-    	   )
+    	if (Robot.driveSubsystem.motionProfileDriver.minPointsLoaded())
     	{
-    		if (timeout)
-    		{
-    			//System.out.println("WARNING: DriveProfile Timedout!");
-    		}
-    		return CommandUtils.stateChange(this, new Idle());
+	    	boolean timeout = (timeSinceInitialized() > timeout_sec);
+	    	if ( (Robot.runMode != Robot.RunMode.AUTO) ||
+	    		 (Robot.driveSubsystem.motionProfileDriver.getSetValue() != SetValueMotionProfile.Enable) ||
+	    		 timeout
+	    	   ) 
+	    	{
+	    		if (timeout)
+	    		{
+	    		}
+	    		return CommandUtils.stateChange(this, new Idle());
+	    	}
     	}
-
+    	else
+    	{
+	    	if ( (Robot.runMode != Robot.RunMode.AUTO) ||
+		    		 (Robot.driveSubsystem.motionProfileDriver.getSetValue() == SetValueMotionProfile.Hold)
+		    	   ) 
+		    	{
+		    		return CommandUtils.stateChange(this, new Idle());
+		    	}
+    	}
+    	
         return false;
     }
 

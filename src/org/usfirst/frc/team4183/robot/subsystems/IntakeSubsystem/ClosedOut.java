@@ -11,44 +11,74 @@ import edu.wpi.first.wpilibj.command.Command;
  */
 public class ClosedOut extends Command {
 
+	private double timeout_sec = 0.0;
+	
     public ClosedOut() {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
     	requires(Robot.intakeSubsystem);
+    	timeout_sec  = 0.0;
     }
 
+    public ClosedOut(double aTimeout) {
+        // Use requires() here to declare subsystem dependencies
+        // eg. requires(chassis);
+    	requires(Robot.intakeSubsystem);
+    	
+    	timeout_sec = aTimeout;
+    }
     // Called just before this Command runs the first time
     protected void initialize() {
+    	System.out.println(this.getClass().getSimpleName());
     	Robot.intakeSubsystem.closeMandible();
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	Robot.intakeSubsystem.setIntakeMotorSpeed(RobotMap.INTAKE_MOTOR_PERCENT);
+    	Robot.intakeSubsystem.setIntakeMotorsToSpeed(RobotMap.INTAKE_MOTOR_PERCENT, RobotMap.THROAT_MOTOR_PERCENT);
+    	System.out.println("Timeout: " + timeout_sec + " TIME SINCE INIT = " + timeSinceInitialized());
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if(Robot.oi.btnIdle.get()) 
-    		return CommandUtils.stateChange(this, new Idle());
-    	else if(Robot.oi.btnInIntake.get())
-    		return CommandUtils.stateChange(this, new ClosedIn());
-    	else if(Robot.oi.btnRightIntake.get())
-    		return CommandUtils.stateChange(this, new ClosedRight());
-    	else if(Robot.oi.btnLeftIntake.get())
-    		return CommandUtils.stateChange(this, new ClosedLeft());
-    	else if(Robot.oi.btnOpenGate.get())
-    		return CommandUtils.stateChange(this, new OpenOut());
-        return false;
+    	
+    	System.out.println("Blah");
+		System.out.flush();
+    	
+    	if (timeout_sec == 0.0)
+    	{
+    		System.out.println("First End Condition, time:" + timeSinceInitialized());
+    		System.out.flush();
+	    	if(Robot.oi.btnIdle.get() || (! Robot.oi.btnOutIntake.get() && !Robot.oi.sbtnOuttakeThroat.get())) 
+	    		return CommandUtils.autoStateChange(this, new Idle());
+	    	else if(Robot.oi.btnOpenGate.get())
+	    		return CommandUtils.autoStateChange(this, new OpenOut());
+    	}
+    	else
+    	{
+    		System.out.println("second if statement, time: " + timeSinceInitialized());
+    		System.out.flush();
+    		if (timeSinceInitialized() >= timeout_sec)
+    		{
+    			System.out.println("Second end condition");
+    			System.out.flush();
+    			return CommandUtils.autoStateChange(this, new Idle());
+    		}
+    	}
+    	return false;
     }
 
     // Called once after isFinished returns true
     protected void end() {
+    	System.out.println("Closed out end");
+    	System.out.flush();
     }
 
     // Called when another command which requires one or more of the same
     // subsystems is scheduled to run
     protected void interrupted() {
+    	System.out.println("Closed out interrupted");
+    	System.out.flush();
     	end();
     }
 }

@@ -1,7 +1,6 @@
 package org.usfirst.frc.team4183.robot.subsystems.IntakeSubsystem;
 
 import org.usfirst.frc.team4183.robot.Robot;
-import org.usfirst.frc.team4183.robot.RobotMap;
 import org.usfirst.frc.team4183.utils.CommandUtils;
 
 import edu.wpi.first.wpilibj.command.Command;
@@ -9,32 +8,36 @@ import edu.wpi.first.wpilibj.command.Command;
 /**
  *
  */
-public class ClosedRight extends Command {
+public class Diagnostics extends Command {
 
-    public ClosedRight() {
+	private int diagInitLoops;
+	
+    public Diagnostics() {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
     	requires(Robot.intakeSubsystem);
+    	diagInitLoops = 0;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	Robot.intakeSubsystem.closeMandible();
-    	System.out.println(this.getClass().getSimpleName());
-    	}
+    	Robot.intakeSubsystem.diagnosticsInit();
+    }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	Robot.intakeSubsystem.setLeftMotorSpeed(RobotMap.INTAKE_MOTOR_PERCENT, RobotMap.THROAT_MOTOR_PERCENT);
-    	Robot.intakeSubsystem.setRightMotorSpeed(-RobotMap.INTAKE_MOTOR_PERCENT, -RobotMap.THROAT_MOTOR_PERCENT);
+    	if(diagInitLoops < Robot.intakeSubsystem.DIAG_LOOPS_RUN) {
+    		Robot.intakeSubsystem.diagnosticsExecute();
+    		diagInitLoops++;
+    	}
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if(Robot.oi.btnIdle.get() || ! Robot.oi.btnRightIntake.get()) 
-    		return CommandUtils.autoStateChange(this, new Idle());
-    	else if(Robot.oi.btnOpenGate.get())
-    		return CommandUtils.autoStateChange(this, new OpenRight());
+    	if(diagInitLoops >= Robot.intakeSubsystem.DIAG_LOOPS_RUN) {
+    		Robot.intakeSubsystem.diagnosticsCheck();
+    		return CommandUtils.stateChange(this, new Idle());
+    	}
         return false;
     }
 
@@ -45,6 +48,5 @@ public class ClosedRight extends Command {
     // Called when another command which requires one or more of the same
     // subsystems is scheduled to run
     protected void interrupted() {
-    	end();
     }
 }

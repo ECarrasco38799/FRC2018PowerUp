@@ -165,7 +165,12 @@ public class MotionProfileDriver
 		_bStart = false;
 
 	}
+	
+	public boolean minPointsLoaded()
 
+	{
+		return (_statusL.btmBufferCnt > kMinPointsInTalon && _statusR.btmBufferCnt > kMinPointsInTalon);
+	}
 	/**
 	 * Called every loop.
 	 */
@@ -227,7 +232,6 @@ public class MotionProfileDriver
 						}
 						else
 						{
-							System.out.printf("*************** FILL FAILED ***********\n");
 						}
 					}
 					break;
@@ -252,6 +256,7 @@ public class MotionProfileDriver
 					 */
 					if (_statusL.isUnderrun == false&& _statusR.isUnderrun==false) {
 						_loopTimeout = kNumLoopsTimeout;
+
 					}
 					/*
 					 * If we are executing an MP and the MP finished, start loading
@@ -269,7 +274,6 @@ public class MotionProfileDriver
 					}
 					break;
 			}
-
 			/* Get the motion profile status every loop */
 			_talonL.getMotionProfileStatus(_statusL);
 			_talonR.getMotionProfileStatus(_statusR);

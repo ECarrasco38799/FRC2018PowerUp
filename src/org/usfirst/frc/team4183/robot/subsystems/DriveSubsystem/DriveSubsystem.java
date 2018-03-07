@@ -17,7 +17,7 @@ import org.usfirst.frc.team4183.robot.Robot;
 import org.usfirst.frc.team4183.robot.RobotMap;
 import org.usfirst.frc.team4183.utils.Deadzone;
 import org.usfirst.frc.team4183.robot.subsystems.BitBucketsSubsystem;
-
+import org.usfirst.frc.team4183.robot.subsystems.SubsystemUtilities.DiagnosticsInformation;
 import org.usfirst.frc.team4183.robot.subsystems.SubsystemUtilities.DiagnosticsState;
 import org.usfirst.frc.team4183.robot.subsystems.SubsystemUtilities.SubsystemTelemetryState;
 
@@ -73,6 +73,7 @@ public class DriveSubsystem extends BitBucketsSubsystem
 	
     public DriveSubsystem()
     {
+    	this.setName("DriveSubsystem");
     		setName("DriveSubsystem");
     		    		
 			// Make joystick scale chooser and put it on the dashboard
@@ -106,6 +107,7 @@ public class DriveSubsystem extends BitBucketsSubsystem
 	    	leftFrontMotor = new TalonSRX(RobotMap.LEFT_DRIVE_MOTOR_FRONT_ID);
 	    	leftRearMotor = new TalonSRX(RobotMap.LEFT_DRIVE_MOTOR_REAR_ID);
 	    	leftRearMotor.follow(leftFrontMotor);
+	    	
 	    	
 	    	/// TODO: Create setupMasterMotor function
 	    	/// TODO: Create setupSlaveMotor function
@@ -221,7 +223,8 @@ public class DriveSubsystem extends BitBucketsSubsystem
 	    			                              RobotMap.CONTROLLER_TIMEOUT_MS);
 	    	rightRearMotor.configNeutralDeadband(RobotMap.RIGHT_DRIVE_MOTOR_NEUTRAL_DEADBAND, 
 	    			                             RobotMap.CONTROLLER_TIMEOUT_MS);
-			rightFrontMotor.configOpenloopRamp(RobotMap.DRIVE_MOTOR_OPEN_LOOP_RAMP_SEC, 
+			
+	    	rightFrontMotor.configOpenloopRamp(RobotMap.DRIVE_MOTOR_OPEN_LOOP_RAMP_SEC, 
 				      					 	   RobotMap.CONTROLLER_TIMEOUT_MS);
 			rightRearMotor.configOpenloopRamp(RobotMap.DRIVE_MOTOR_OPEN_LOOP_RAMP_SEC, 
 											  RobotMap.CONTROLLER_TIMEOUT_MS);
@@ -294,7 +297,7 @@ public class DriveSubsystem extends BitBucketsSubsystem
 	    	
 	    	
 	    	// Create the motion profile driver
-    		motionProfileDriver = new MotionProfileDriver(leftFrontMotor, leftFrontMotor, RobotMap.MOTION_PROFILE_PERIOD_MS);
+    		motionProfileDriver = new MotionProfileDriver(leftFrontMotor, rightFrontMotor, RobotMap.MOTION_PROFILE_PERIOD_MS);
 	    	
 
     		    	
@@ -417,10 +420,19 @@ public class DriveSubsystem extends BitBucketsSubsystem
 	@Override
 	protected void initDefaultCommand() 
 	{
-		setDefaultCommand(new Idle());		
+		// Moved to initialize so it does not automatically interfere
+		// setDefaultCommand(new Idle());		
 		
 	}
 
+	public void initialize() 
+	{
+		Idle initialCommand = new Idle();
+		initialCommand.start();
+		
+	}
+	
+	
 	public void disable() {
 		setAllMotorsZero();
 	}
@@ -603,33 +615,41 @@ public class DriveSubsystem extends BitBucketsSubsystem
 		lastKnownState = DiagnosticsState.PASS;
 		SmartDashboard.putBoolean(getName() + "Diagnostics", true); // All good until we find a fault
 		
-		SmartDashboard.putBoolean("DiagnosticsFR", true);
-		if(rightFrontMotor.getOutputCurrent() <= RobotMap.MINUMUM_MOTOR_CURR) {
-			SmartDashboard.putBoolean("DiagnosticsFR", false);
+		if(Robot.diagInformation.getSelected() == DiagnosticsInformation.SUBSYSTEM_EXTENDED)
+		{
+			SmartDashboard.putBoolean("DiagnosticsFR", true);
+			SmartDashboard.putBoolean("DiagnosticsBR", true);
+			SmartDashboard.putBoolean("DiagnosticsFL", true);
+			SmartDashboard.putBoolean("DiagnosticsBL", true);
+			
+		}
+		if(rightFrontMotor.getOutputCurrent() <= RobotMap.MINIMUM_MOTOR_CURR) {
+			if(Robot.diagInformation.getSelected() == DiagnosticsInformation.SUBSYSTEM_EXTENDED)
+				SmartDashboard.putBoolean("DiagnosticsFR", false);
 			SmartDashboard.putBoolean(getName() + "Diagnostics", false);
 			lastKnownState = DiagnosticsState.FAIL;
 		}
 		rightFrontMotor.set(ControlMode.PercentOutput, 0.0);
 		
-		SmartDashboard.putBoolean("DiagnosticsBR", true);
-		if(rightRearMotor.getOutputCurrent() <= RobotMap.MINUMUM_MOTOR_CURR) {
-			SmartDashboard.putBoolean("DiagnosticsBR", false);
+		if(rightRearMotor.getOutputCurrent() <= RobotMap.MINIMUM_MOTOR_CURR) {
+			if(Robot.diagInformation.getSelected() == DiagnosticsInformation.SUBSYSTEM_EXTENDED)
+				SmartDashboard.putBoolean("DiagnosticsBR", false);
 			SmartDashboard.putBoolean(getName() + "Diagnostics", false);
 			lastKnownState = DiagnosticsState.FAIL;
 		}
 		rightRearMotor.set(ControlMode.PercentOutput, 0.0);
 		
-		SmartDashboard.putBoolean("DiagnosticsFL", true);
-		if(leftFrontMotor.getOutputCurrent() <= RobotMap.MINUMUM_MOTOR_CURR) {
-			SmartDashboard.putBoolean("DiagnosticsFL", false);
+		if(leftFrontMotor.getOutputCurrent() <= RobotMap.MINIMUM_MOTOR_CURR) {
+			if(Robot.diagInformation.getSelected() == DiagnosticsInformation.SUBSYSTEM_EXTENDED)
+				SmartDashboard.putBoolean("DiagnosticsFL", false);
 			SmartDashboard.putBoolean(getName() + "Diagnostics", false);
 			lastKnownState = DiagnosticsState.FAIL;
 		}
 		leftFrontMotor.set(ControlMode.PercentOutput, 0.0);
 		
-		SmartDashboard.putBoolean("DiagnosticsBL", true);
-		if(leftRearMotor.getOutputCurrent() <= RobotMap.MINUMUM_MOTOR_CURR) {
-			SmartDashboard.putBoolean("DiagnosticsBL", false);
+		if(leftRearMotor.getOutputCurrent() <= RobotMap.MINIMUM_MOTOR_CURR) {
+			if(Robot.diagInformation.getSelected() == DiagnosticsInformation.SUBSYSTEM_EXTENDED)
+				SmartDashboard.putBoolean("DiagnosticsBL", false);
 			SmartDashboard.putBoolean(getName() + "Diagnostics", false);
 			lastKnownState = DiagnosticsState.FAIL;
 		}
@@ -700,20 +720,32 @@ public class DriveSubsystem extends BitBucketsSubsystem
 		
 	}
 	
-	public boolean isTurnComplete() // A timeout should be used with this
+	public boolean isTurnComplete(double  angle_degrees) // A timeout should be used with this
 	{
 		// Using the same drive error for move and turn is not a universal thing
 		// In this case if the wheels are 6.25 and track is 24.25 and tolerance is 0.125 inches on move
 		// then the equivalent angle is about 0.6 degrees of frame rotation.
-		return (Math.abs(leftFrontMotor.getClosedLoopError(RobotMap.PRIMARY_PID_LOOP))  < RobotMap.DRIVE_MOTOR_MAX_CLOSED_LOOP_ERROR_TICKS) &&
-			   (Math.abs(rightFrontMotor.getClosedLoopError(RobotMap.PRIMARY_PID_LOOP)) < RobotMap.DRIVE_MOTOR_MAX_CLOSED_LOOP_ERROR_TICKS);
+		
+		double targetPos_ticks = (angle_degrees * RobotMap.WHEEL_ROTATION_PER_FRAME_DEGREES) * RobotMap.DRIVE_MOTOR_NATIVE_TICKS_PER_REV;
+		int errorL = (int) Math.abs(targetPos_ticks - (leftFrontMotor.getSelectedSensorPosition(RobotMap.PRIMARY_PID_LOOP)));
+		int errorR = (int) Math.abs(-targetPos_ticks - (rightFrontMotor.getSelectedSensorPosition(RobotMap.PRIMARY_PID_LOOP)));
+		return (errorL  < RobotMap.DRIVE_MOTOR_MAX_CLOSED_LOOP_ERROR_TICKS_ROTATION) &&
+			   (errorR < RobotMap.DRIVE_MOTOR_MAX_CLOSED_LOOP_ERROR_TICKS_ROTATION);
+		
 	}
 
 	public void startTrajectory(RobotTrajectory aTrajectory) 
 	{
+		System.out.printf("Starting Trajectory\n");
 		motionProfileDriver.setCurrentTrajectory(aTrajectory);
 		motionProfileDriver.startCurrentTrajectory();
 	}	
+	
+	public void profileDrive()
+	{
+		leftFrontMotor.set(ControlMode.MotionProfile,  motionProfileDriver.getSetValue().value);
+		rightFrontMotor.set(ControlMode.MotionProfile,  motionProfileDriver.getSetValue().value);
+	}
 
 }
 

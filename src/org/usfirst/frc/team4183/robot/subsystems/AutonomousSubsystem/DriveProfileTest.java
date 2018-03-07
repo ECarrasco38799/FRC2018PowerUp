@@ -2,14 +2,20 @@ package org.usfirst.frc.team4183.robot.subsystems.AutonomousSubsystem;
 
 import edu.wpi.first.wpilibj.command.CommandGroup;
 
+import org.usfirst.frc.team4183.utils.*;
+
 import org.usfirst.frc.team4183.robot.subsystems.DriveSubsystem.*;
+import org.usfirst.frc.team4183.robot.subsystems.IntakeSubsystem.ClosedOut;
+import org.usfirst.frc.team4183.robot.subsystems.IntakeSubsystem.ThroatHold;
 /**
  *
  */
-public class AutoTasks extends CommandGroup {
-
-    public AutoTasks() {
-        // Add Commands here:
+public class DriveProfileTest extends CommandGroup
+{
+	
+	public DriveProfileTest()
+	{
+		 // Add Commands here:
         // e.g. addSequential(new Command1());
         //      addSequential(new Command2());
         // these will run in order.
@@ -25,10 +31,8 @@ public class AutoTasks extends CommandGroup {
         // e.g. if Command1 requires chassis, and Command2 requires arm,
         // a CommandGroup containing them would require both the chassis and the
         // arm.
-    	
-    	addSequential(new MoveBy(24, 3));
-    	addSequential(new TurnBy(500, 3));
-    	addSequential(new MoveBy(-24, 3));
-    	
-    }
+		// Assume all subsystems have been commanded to Idle at initialization
+		addSequential(new DriveProfile(PathPlans.testTrajectory0));	// Got from A to B
+	}
+
 }

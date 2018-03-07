@@ -9,9 +9,9 @@ import edu.wpi.first.wpilibj.command.Command;
 /**
  *
  */
-public class ClosedRight extends Command {
+public class ThroatHold extends Command {
 
-    public ClosedRight() {
+    public ThroatHold() {
         // Use requires() here to declare subsystem dependencies
         // eg. requires(chassis);
     	requires(Robot.intakeSubsystem);
@@ -19,22 +19,33 @@ public class ClosedRight extends Command {
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	Robot.intakeSubsystem.closeMandible();
     	System.out.println(this.getClass().getSimpleName());
-    	}
+    }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	Robot.intakeSubsystem.setLeftMotorSpeed(RobotMap.INTAKE_MOTOR_PERCENT, RobotMap.THROAT_MOTOR_PERCENT);
-    	Robot.intakeSubsystem.setRightMotorSpeed(-RobotMap.INTAKE_MOTOR_PERCENT, -RobotMap.THROAT_MOTOR_PERCENT);
+    	Robot.intakeSubsystem.setLeftThroatSpeed(RobotMap.THROAT_LEFT_HOLD_PERCENT);
+    	Robot.intakeSubsystem.setRightThroatSpeed(RobotMap.THROAT_RIGHT_HOLD_PERCENT);
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
-    	if(Robot.oi.btnIdle.get() || ! Robot.oi.btnRightIntake.get()) 
+    	if(Robot.oi.btnIdle.get())
     		return CommandUtils.autoStateChange(this, new Idle());
-    	else if(Robot.oi.btnOpenGate.get())
-    		return CommandUtils.autoStateChange(this, new OpenRight());
+    	else if(Robot.oi.btnOpenGate.get() || Robot.oi.sbtnOpenMandible.get())
+			return CommandUtils.autoStateChange(this, new OpenOff());
+		else if(Robot.oi.btnOutIntake.get()|| Robot.oi.sbtnOuttakeThroat.get()) {
+			return CommandUtils.autoStateChange(this, new ClosedOut());
+		}
+		else if(Robot.oi.btnInIntake.get()) {
+			return CommandUtils.autoStateChange(this, new ClosedIn());
+		}
+		else if(Robot.oi.btnLeftIntake.get()) {
+			return CommandUtils.autoStateChange(this, new ClosedLeft());
+		}
+		else if(Robot.oi.btnRightIntake.get()) {
+			return CommandUtils.autoStateChange(this, new ClosedRight());
+		}
         return false;
     }
 
@@ -45,6 +56,5 @@ public class ClosedRight extends Command {
     // Called when another command which requires one or more of the same
     // subsystems is scheduled to run
     protected void interrupted() {
-    	end();
     }
 }
